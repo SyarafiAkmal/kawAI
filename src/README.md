@@ -1,2 +1,0 @@
-# Deskripsi Repository
-yadda yadda
