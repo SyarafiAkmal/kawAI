@@ -21,7 +21,7 @@ def KNN(k, query):
         print(f"D-{sorted_dist[i][1]}: {array_2d[sorted_dist[i][1]]}, distance: {sorted_dist[i][0]}")
     
 
-KNN(3, ['sunny', 'cool', 'high', 'true'])
+# KNN(3, ['sunny', 'cool', 'high', 'true'])
 
 
 
