@@ -1,4 +1,24 @@
-import csv, json
+import csv
+import Model
+from Model import Model
+
+class NaiveBayes(Model):
+    def fit():
+        """
+        Trains the train dataset using NB algorithm
+
+        returns: an object model (JSON)
+        """
+        pass
+
+    def score():
+        """
+        Scores performance of model based on the test dataset
+
+        returns: a score element of accuracy, precision, and recall 
+        """
+        pass
+
 
 def calculateClassModel(cl, data_csv):
     class_index = data_csv[0].index(cl)
@@ -67,7 +87,7 @@ def buildNBModel(filename):
 
     return json_model
 
-def featNB(model):
+def fit(model):
     pass
 
 print(json.dumps(buildNBModel("dummy"), indent = 4))
