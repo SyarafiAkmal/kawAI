@@ -11,7 +11,7 @@ class KNearestNeighbor(Model):
         returns: a score element of accuracy 
         """
         tp = 0
-        k = 3
+        k = params["k"]
         for i in range(len(self.data_test_x)):
             result = self.KNN(k, self.data_test_x[i])
             if(result == self.data_test_y[i][0]):
@@ -51,10 +51,10 @@ if __name__ == "__main__":
     with open('../data/dummy.csv', newline='') as csvfile:
         reader = csv.reader(csvfile)
         data_csv = [row for row in reader]
-        data_csv.pop(0)
+        data_csv.pop(0) # Removing the column
 
-    kNN = KNearestNeighbor(data_csv[:7], data_csv[7:], len(data_csv[0]) - 1)
-    print(kNN.score())
+    kNN = KNearestNeighbor(data_csv, 7)
+    print(kNN.score({'k': 3}))
 
 
 

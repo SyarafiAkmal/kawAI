@@ -1,96 +1,78 @@
-import csv
+import csv, json
 import Model
 from Model import Model
+import pandas as pd
 
 class NaiveBayes(Model):
-    def fit():
+    def fit(self, params = None):
         """
         Trains the train dataset using NB algorithm
 
         returns: an object model (JSON)
         """
-        pass
+        df_unique = pd.DataFrame(self.data_train_x + self.data_test_x, columns=self.columns['x'])
+        attribute_vals = []
+        for col in df_unique.columns:
+            attribute_vals += (df_unique[col].unique()).tolist()
 
-    def score():
+        classes = list(set([row_y[0] for row_y in self.data_train_y]))
+        model = {}
+        for cls in classes:
+            model[cls] = {
+                "freq" : self.data_train_y.count([cls]),
+                "p": round(self.data_train_y.count([cls]) / len(self.data_train_y), 2)
+                }
+            for att in attribute_vals:
+                model[cls][att] = {
+                    "freq" : 0,
+                    "p": 0
+                }  
+        for i in range(len(self.data_train_x)):
+            for att in attribute_vals:
+                if att in self.data_train_x[i]:
+                    model[self.data_train_y[i][0]][att]['freq'] += 1
+        
+        for cls in classes:
+            for att in attribute_vals:
+                model[cls][att]['p'] = round(model[cls][att]['freq'] / model[cls]['freq'], 2)
+        
+        return model
+    
+    def scoreRow(self, query):
+        classes = list(set([row_y[0] for row_y in self.data_train_y]))
+        result = []
+        for cls in classes:
+            p = 1
+            for cell in query:
+                p *= self.model[cls][cell]['p']
+            result.append([cls, p * self.model[cls]['p']])
+            
+
+        return sorted(result, key=lambda x: x[1], reverse=True)[0][0] # returns the class with the highest
+
+    def score(self, params = None):
         """
         Scores performance of model based on the test dataset
 
         returns: a score element of accuracy, precision, and recall 
         """
-        pass
+        self.model = self.fit()
+        tp = 0
+        for i in range(len(self.data_test_x)):
+            if self.scoreRow(self.data_test_x[i]) == self.data_test_y[i][0]:
+                tp += 1
+        
+        return round(tp / len(self.data_test_x), 2)
 
 
-def calculateClassModel(cl, data_csv):
-    class_index = data_csv[0].index(cl)
-    class_model = []
-    for i in range(1, len(data_csv)):
-        class_model.append(data_csv[i][class_index])
-
-    classes = list(set(class_model))
-    class_model = [[cls, 0] for cls in classes]
-    for cls in class_model:
-        for i in range(1, len(data_csv)):
-            if cls[0] == data_csv[i][class_index]:
-                cls[1] += 1
-        cls.append(cls[1] / (len(data_csv) - 1))
-    
-    class_model.append(class_index)
-    return class_model
-
-def calculateAttributeModel(att, class_model, data_csv):
-    att_index = data_csv[0].index(att)
-    class_index = class_model[len(class_model) - 1]
-
-    att_model = []
-    for i in range(1, len(data_csv)):
-        att_model.append(data_csv[i][att_index])
-
-    attributes = list(set(att_model))
-    att_model = []
-    for att in attributes:
-        for i in range(len(class_model) - 1):
-            att_model.append([att, 0, class_model[i][0], class_model[i][1]])
-
-    for att in att_model:
-        for i in range(1, len(data_csv)):
-            if (att[0] == data_csv[i][att_index] and att[2] == data_csv[i][class_index]):
-                att[1] += 1
-        att.append(att[1]/ att[3])
-    
-    return att_model
-
-
-def buildNBModel(filename):
-    with open('../data/'+ filename +'.csv', newline='') as csvfile:
+if __name__ == "__main__":
+    with open('../data/dummy.csv', newline='') as csvfile:
         reader = csv.reader(csvfile)
         data_csv = [row for row in reader]
-    
-    class_model = calculateClassModel('play', data_csv)
 
-    array_model = []
-    for i in range(len(data_csv[0]) - 1):
-        array_model.append(calculateAttributeModel(data_csv[0][i], class_model, data_csv))
-
-    json_model = {}
-    for i in range(len(class_model) - 1):
-        json_model[class_model[i][0]] = {
-            "freq": class_model[i][1],
-            "p": round(class_model[i][2], 2)
-        }
-
-    for attribute in array_model:
-        for data_class in attribute:
-            json_model[data_class[2]][data_class[0]] = {
-                "freq": data_class[1],
-                "p" : round(data_class[4], 2)
-            }
-
-    return json_model
-
-def fit(model):
-    pass
-
-print(json.dumps(buildNBModel("dummy"), indent = 4))
+    naiveB = NaiveBayes(data_csv, 9)
+    # print(json.dumps(naiveB.fit({'query': ['sunny', 'cool', 'high', 'true']}), indent=4))
+    print(naiveB.score())
 
 
 
