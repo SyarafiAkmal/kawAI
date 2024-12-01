@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"sync"
 )
 
 type NaiveBayes struct {
@@ -30,7 +31,7 @@ func (nb *NaiveBayes) fit() {
 		classCounts[row[0]]++
 	}
 
-	fmt.Println("Fitting...")
+	// fmt.Println("Fitting...")
 	// Initialize the model
 	nb.model = make(map[string]map[string]map[string]float64)
 	for class, freq := range classCounts {
@@ -112,14 +113,25 @@ func (nb *NaiveBayes) predict(query []string) string {
 }
 
 func (nb *NaiveBayes) score() float64 {
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+
 	nb.fit()
 	tp := 0
-	fmt.Println("Scoring...")
+	
 	for i, row := range nb.dataTestX {
-		if nb.predict(row) == nb.dataTestY[i][0] {
-			tp++
-		}
+		wg.Add(1)
+		go func (row []string, i int)  {
+			wg.Done()
+			if nb.predict(row) == nb.dataTestY[i][0] {
+				mu.Lock()
+				tp++
+				mu.Unlock()
+			}
+		}(row, i)
 	}
+	wg.Wait()
+	
 	fmt.Println(tp, "/",len(nb.dataTestX), "correct")
 	return float64(tp) / float64(len(nb.dataTestX))
 }
@@ -142,8 +154,8 @@ func MainNB(data [][]string) {
 	// testX := features
 	// trainY := labels
 	// testY := labels
-	trainX, testX := splitDataset(features, 0.8)
-	trainY, testY := splitDataset(labels, 0.8)
+	trainX, testX := splitDataset(features, 0.5)
+	trainY, testY := splitDataset(labels, 0.5)
 
 	nb := NaiveBayes{
 		dataTrainX: trainX,

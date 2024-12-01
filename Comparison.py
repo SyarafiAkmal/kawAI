@@ -1,62 +1,39 @@
-import csv
+import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import LabelEncoder
 
-# Example dataset: 2 features (X) and 1 target (y)
-with open('../data/data.csv', newline='') as csvfile:
-    reader = csv.reader(csvfile)
-    data_csv = [row for row in reader]
-    data_csv.pop(0)  # Assuming first row is header
+# Step 1: Load dataset from CSV
+df = pd.read_csv('src/data/data.csv')
 
-X = [train_row[:4] for train_row in data_csv]  # Features (first 4 columns)
-y = [train_row[4:][0] for train_row in data_csv]  # Target (5th column)
+# Step 2: Identify categorical columns and encode them
+# Assuming 'attack_cat' is the target column, let's check for any other categorical columns
+categorical_cols = df.select_dtypes(include=['object']).columns
 
-# Encode categorical data to numeric values
-feature_encoders = [LabelEncoder() for _ in range(len(X[0]))]  # Create a separate encoder for each feature
-X_encoded = []
-
-# Apply label encoding to each feature column
-for col_idx, encoder in enumerate(feature_encoders):
-    # Use the encoder to transform each feature column
-    X_encoded.append(encoder.fit_transform([row[col_idx] for row in X]))
-
-# Transpose the encoded data back to the original format
-X_encoded = list(zip(*X_encoded))
-
-# Encode the target variable (y)
+# Label encode categorical features (other than the target column 'attack_cat')
 label_encoder = LabelEncoder()
-y_encoded = label_encoder.fit_transform(y)
 
-# Split the dataset
-X_train, X_test, y_train, y_test = train_test_split(X_encoded, y_encoded, test_size=0.2, random_state=30)
+for col in categorical_cols:
+    if col != 'attack_cat':  # We don't want to encode the target column
+        df[col] = label_encoder.fit_transform(df[col])
 
-# Train KNN model
+# Step 3: Split the dataset into features (X) and target labels (y)
+X = df.drop('attack_cat', axis=1)  # Drop the 'attack_cat' column to get the features
+y = df['attack_cat']  # 'attack_cat' column is the labels
+
+# Step 4: Split the data into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Step 5: Initialize the kNN classifier
 knn = KNeighborsClassifier(n_neighbors=3)
+
+# Step 6: Train the model
 knn.fit(X_train, y_train)
 
-# Predict
+# Step 7: Make predictions on the test set
 y_pred = knn.predict(X_test)
 
-# Decoding predictions back to original categories (using the label encoder for y)
-y_pred_decoded = label_encoder.inverse_transform(y_pred)
-
-# Decoding test features back to original categories
-X_test_decoded = []
-for col_idx, encoder in enumerate(feature_encoders):
-    X_test_decoded.append(encoder.inverse_transform([row[col_idx] for row in X_test]))
-
-# Reconstruct X_test_decoded to match the format
-X_test_decoded = list(zip(*X_test_decoded))
-
-# Calculate accuracy
-tp = 0
-for i in range(len(y_test)):
-    if y_test[i] == y_pred[i]:
-        tp += 1
-
-# Output decoded predictions and the test set
-print("Decoded X_test:", X_test_decoded)
-print("Original y_test:", y_test)
-print("Decoded y_pred:", y_pred_decoded)
-print("Accuracy:", round(tp / len(y_test), 2))
+# Step 8: Evaluate the model's accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy * 100:.2f}%")

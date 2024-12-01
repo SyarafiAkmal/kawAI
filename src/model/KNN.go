@@ -14,12 +14,30 @@ type KNearestNeighbor struct {
 }
 
 func (knn *KNearestNeighbor) distance(query []string, row []string) int {
+	// var wg sync.WaitGroup
+	// var mu sync.Mutex
+
 	dist := 0
+	// for i := range query {
+	// 	wg.Add(1)
+	// 	go func(i int) {
+	// 		defer wg.Done()
+	// 		if query[i] != row[i] {
+	// 			mu.Lock()
+	// 			dist++
+	// 			mu.Unlock()
+	// 		}
+	// 	}(i)
+	// }
+
+	// wg.Wait()
+
 	for i := range query {
 		if query[i] != row[i] {
 			dist++
 		}
 	}
+
 	return dist
 }
 
@@ -77,8 +95,7 @@ func (knn *KNearestNeighbor) score(k int) float64 {
 				tp++
 				mu.Unlock() // Unlock after modifying tp
 			}
-
-			fmt.Println(i)
+			// fmt.Println(i)
 			// fmt.Printf("Current Accuracy: %.2f\n", float64(tp)/float64(i+1))
 		}(i, query)
 	}
