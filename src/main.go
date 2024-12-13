@@ -38,6 +38,11 @@ func main() {
 	if (args[3] == "NB") {
 		model.MainNB(data[1:])
 	}
+	
+	if (args[3] == "ID3") {
+		model.MainID3(data)
+	}
+
 	// model.MainKNN(data[1:])
 	fmt.Printf("Execution Time: %v\n", time.Since(startTime))
 }
