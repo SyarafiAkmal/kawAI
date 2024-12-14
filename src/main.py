@@ -1,4 +1,7 @@
 import subprocess
+import pandas as pd
+from model.model_library import *
+
 go_file = "main.go"
 
 def KNN(k, filename):
@@ -28,4 +31,10 @@ def ID3(k, filename):
         print("Go program error:")
         print(result.stderr)
 
-ID3('3', 'dummy')
+def KNN_library(k, filename) :
+    data = pd.read_csv("data/" + filename + ".csv")
+    KNNs(k, data)
+
+
+KNN_library(5, 'dummy')
+# KNN('3', 'dummy')
