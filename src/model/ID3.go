@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"math"
 	// "time"
+	// "time"
 	// "sort"
-	// "sync"
+	"sync"
 )
 
 type ID3 struct {
@@ -24,6 +25,29 @@ func (id3 *ID3) indexOf(slice []string, element string) int {
 	}
 	return -1
 }
+
+func (id3 *ID3) mode(slice [][]string) string {
+    // Create a map to count occurrences
+    counts := make(map[string]int)
+
+    // Count each element in the slice
+    for _, v := range slice {
+        counts[v[0]]++
+    }
+
+    // Find the element with the maximum count
+    var mode string
+    maxCount := 0
+    for k, v := range counts {
+        if v > maxCount {
+            maxCount = v
+            mode = k
+        }
+    }
+
+    return mode
+}
+
 
 func (id3 *ID3) uniqueValues(dataX [][]string, dataY [][]string, att_index int, feature bool) (unique []string, counts map[string]int) {
 	/*
@@ -149,6 +173,7 @@ type DTreeNode struct {
 	attribute string
 	decision map[string]*DTreeNode
 	class string
+	dataY [][]string
 }
 
 func (id3 *ID3) filterData(dataX [][]string, dataY [][]string, attribute string, att_index int) ([][]string, [][]string) {
@@ -165,26 +190,28 @@ func (id3 *ID3) filterData(dataX [][]string, dataY [][]string, attribute string,
 	return filtered_data_x, filtered_data_y 
 }
 
-func (id3 *ID3) recursiveBuildID3(node *DTreeNode, dataX [][]string, dataY [][]string, path []string) {
+func (id3 *ID3) recursiveBuildID3(node *DTreeNode, dataX [][]string, dataY [][]string, parentY [][]string, path []string) {
 	if node.decision == nil {
         node.decision = make(map[string]*DTreeNode)
     }
 	if len(dataX) == 0 || len(dataY) == 0 {
-		// fmt.Println("No data left to split")
+		node.class = id3.mode(parentY)
+		fmt.Println("No data left to split")
 		return
 	}
 
 	attribute := id3.infoGain(dataX, dataY, path)
 	node.attribute = attribute
+	node.dataY = dataY
 	att_index := id3.indexOf(id3.columns, attribute)
+	classes, _ := id3.uniqueValues(dataX, dataY, 0, false)
 	if att_index == -1 {
-		node.class = "no classification"
+		node.class = id3.mode(dataY) // plurality value of examples
 		// fmt.Println("result =>", node.class)
 		return
 	}
 
 	attributes, _ := id3.uniqueValues(dataX, dataY, att_index, true)
-	classes, _ := id3.uniqueValues(dataX, dataY, 0, false)
 	if len(path) == len(id3.columns) {
 		node.class = "no classification"
 		if (len(classes) == 1) {
@@ -211,7 +238,7 @@ func (id3 *ID3) recursiveBuildID3(node *DTreeNode, dataX [][]string, dataY [][]s
 		// fmt.Println("path:", pass_path)
 		// time.Sleep(time.Second * 2)
 
-		id3.recursiveBuildID3(node.decision[val], filtered_x, filtered_y, pass_path)
+		id3.recursiveBuildID3(node.decision[val], filtered_x, filtered_y, dataY, pass_path)
 	}
 }
 
@@ -234,8 +261,8 @@ func (id3 *ID3) predict(input []string, dtree DTreeNode) string {
         // Pastikan nilai input ada dalam keputusan node
         nextNode, exists := node.decision[input[att_index]]
         if !exists || nextNode == nil {
-            // fmt.Println("No decision found for input:", input[att_index])
-            return "Unknown"
+            // fmt.Println("No decision found for input:", input[att_index], "(" + id3.mode(node.dataY) + ")")
+            return id3.mode(node.dataY)
         }
 
         node = nextNode
@@ -246,20 +273,32 @@ func (id3 *ID3) predict(input []string, dtree DTreeNode) string {
 
 func (id3 *ID3) score() float64 {
 	dtree := &DTreeNode{}
-	fmt.Println("fitting..")
-	id3.recursiveBuildID3(dtree, id3.dataTrainX, id3.dataTrainY, []string{})
-	fmt.Println("Scoring..")
+	id3.recursiveBuildID3(dtree, id3.dataTrainX, id3.dataTrainY, [][]string{}, []string{})
+
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+
 	np := 0
+
 	for i := 0; i < len(id3.dataTestX); i++ {
-		predict := id3.predict(id3.dataTestX[i], *dtree)
-		if(predict == id3.dataTestY[i][0]) {
-			np++
-		}
-		// fmt.Println(i)
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			predict := id3.predict(id3.dataTestX[i], *dtree)
+			if predict == id3.dataTestY[i][0] {
+				mu.Lock()   // Lock access to np
+				np++        // Increment correct predictions
+				mu.Unlock() // Unlock access to np
+			}
+		}(i)
 	}
-	
-	return float64(float64(np) / float64(len(id3.dataTestX)))
+
+	wg.Wait() // Wait for all goroutines to finish
+
+	// Calculate and return the accuracy
+	return float64(np) / float64(len(id3.dataTestX))
 }
+
 
 func MainID3(data [][]string) {
 	var features [][]string
@@ -274,6 +313,7 @@ func MainID3(data [][]string) {
 	// trainY := labels
 	// testY := labels
 	trainX, testX := splitDataset(features, 0.8)
+	// fmt.Println(len(trainX), len(testX))
 	trainY, testY := splitDataset(labels, 0.8)
 
 	ID3 := ID3{

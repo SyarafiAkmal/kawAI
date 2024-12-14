@@ -44,8 +44,8 @@ def ID3_library(filename) :
     data = pd.read_csv("data/" + filename + ".csv")
     ID3s(data)
 
-KNN_library(5, 'data')
-NB_library('data')
-ID3_library('data')
+# KNN_library(5, 'data')
+# NB_library('data')
+# ID3_library('data')
 
-# KNN('3', 'dummy')
+ID3('3', 'data')

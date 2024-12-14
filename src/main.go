@@ -40,7 +40,7 @@ func main() {
 	// }
 	
 	// if (args[3] == "ID3") {
-	// 	fmt.Println("ID3")
+	// 	// fmt.Println("ID3")
 	// 	model.MainID3(data)
 	// }
 
