@@ -35,6 +35,17 @@ def KNN_library(k, filename) :
     data = pd.read_csv("data/" + filename + ".csv")
     KNNs(k, data)
 
+def NB_library(filename) :
+    data = pd.read_csv("data/" + filename + ".csv")
+    NBs(data)
+    # print(data.head())
+    
+def ID3_library(filename) :
+    data = pd.read_csv("data/" + filename + ".csv")
+    ID3s(data)
 
-KNN_library(5, 'dummy')
+KNN_library(5, 'data')
+NB_library('data')
+ID3_library('data')
+
 # KNN('3', 'dummy')
