@@ -11,15 +11,15 @@ import (
 
 func main() {
 
-	args := os.Args
+	// args := os.Args
 
-	if len(args) < 2 {
-		fmt.Println("No arguments provided.")
-		return 
-	}
+	// if len(args) < 2 {
+	// 	fmt.Println("No arguments provided.")
+	// 	return 
+	// }
 
 	// args[2]
-	file, err := os.Open("data/"+ args[2] +".csv")
+	file, err := os.Open("data/"+ "data" +".csv")
 	if err != nil {
 		log.Fatalf("Failed to open CSV file: %v", err)
 	}
@@ -32,18 +32,18 @@ func main() {
 	}
 
 	startTime := time.Now()
-	if (args[3] == "KNN") {
-		model.MainKNN(data[1:])
-	}
-	if (args[3] == "NB") {
-		model.MainNB(data[1:])
-	}
+	// if (args[3] == "KNN") {
+	// 	model.MainKNN(data[1:])
+	// }
+	// if (args[3] == "NB") {
+	// 	model.MainNB(data[1:])
+	// }
 	
-	if (args[3] == "ID3") {
-		fmt.Println("ID3")
-		model.MainID3(data)
-	}
+	// if (args[3] == "ID3") {
+	// 	fmt.Println("ID3")
+	// 	model.MainID3(data)
+	// }
 
-	// model.MainKNN(data[1:])
+	model.MainID3(data)
 	fmt.Printf("Execution Time: %v\n", time.Since(startTime))
 }

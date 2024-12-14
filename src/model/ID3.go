@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"math"
+	// "time"
 	// "sort"
 	// "sync"
 )
@@ -31,6 +32,7 @@ func (id3 *ID3) uniqueValues(dataX [][]string, dataY [][]string, att_index int, 
 		- att_index: index of an attribute to get the unique values 
 		- data: if true then feature else target
 	*/
+	// fmt.Println("index" ,att_index)
 	counts = make(map[string]int)
 	var result []string
 	if(feature){
@@ -116,7 +118,7 @@ func (id3 *ID3) entropyClass(dataY [][]string) float64 {
 	return entropy
 }
 
-func (id3 *ID3) infoGain(dataX [][]string, dataY [][]string) string {
+func (id3 *ID3) infoGain(dataX [][]string, dataY [][]string, path []string) string {
 	/*
 		Returns entropy value of a attribute subset (subset is a value of the attribute)
 		params:
@@ -131,9 +133,12 @@ func (id3 *ID3) infoGain(dataX [][]string, dataY [][]string) string {
 	maxKey := ""
 	var maxValue float64
 	for key, value := range map_gain {
-		if value > maxValue || maxKey == "" {
-			maxValue = value
-			maxKey = key
+		if value > maxValue|| maxKey == "" {
+			// fmt.Println("index", id3.indexOf(path, key))
+			if(id3.indexOf(path, key) == -1) {
+				maxValue = value
+				maxKey = key
+			}
 		}
 	}
 
@@ -149,6 +154,7 @@ type DTreeNode struct {
 func (id3 *ID3) filterData(dataX [][]string, dataY [][]string, attribute string, att_index int) ([][]string, [][]string) {
 	filtered_data_x := [][]string{}
 	filtered_data_y := [][]string{}
+	// fmt.Println(att_index, attribute)
 	for i := 0; i < len(dataX); i++ {
 		if dataX[i][att_index] == attribute {
 			filtered_data_x = append(filtered_data_x, dataX[i])
@@ -159,56 +165,97 @@ func (id3 *ID3) filterData(dataX [][]string, dataY [][]string, attribute string,
 	return filtered_data_x, filtered_data_y 
 }
 
-func (id3 *ID3) recursiveBuildID3(node *DTreeNode, dataX [][]string, dataY [][]string) {
+func (id3 *ID3) recursiveBuildID3(node *DTreeNode, dataX [][]string, dataY [][]string, path []string) {
 	if node.decision == nil {
         node.decision = make(map[string]*DTreeNode)
     }
+	if len(dataX) == 0 || len(dataY) == 0 {
+		// fmt.Println("No data left to split")
+		return
+	}
 
-	attribute := id3.infoGain(dataX, dataY)
+	attribute := id3.infoGain(dataX, dataY, path)
 	node.attribute = attribute
 	att_index := id3.indexOf(id3.columns, attribute)
+	if att_index == -1 {
+		node.class = "no classification"
+		// fmt.Println("result =>", node.class)
+		return
+	}
+
 	attributes, _ := id3.uniqueValues(dataX, dataY, att_index, true)
 	classes, _ := id3.uniqueValues(dataX, dataY, 0, false)
-	if (len(classes) == 1) { // the node already has a class
+	if len(path) == len(id3.columns) {
+		node.class = "no classification"
+		if (len(classes) == 1) {
+			node.class = classes[0]
+		}
+		// fmt.Println("result =>", node.class)
+		return
+	}
+
+	if (len(classes) == 1) {
 		node.class = classes[0]
 		// fmt.Println("result =>", node.class)
 		return
 	}
 
+	pass_path := append([]string{}, path...)
+	pass_path = append(pass_path, attribute)
 	for _, val := range attributes {
 		// fmt.Println(attribute, "=> node")
 		// fmt.Println(val)
 		node.decision[val] = &DTreeNode{}
 		filtered_x, filtered_y := id3.filterData(dataX, dataY, val, att_index)
-		id3.recursiveBuildID3(node.decision[val], filtered_x, filtered_y)
+		// fmt.Println("data length:", len(filtered_x))
+		// fmt.Println("path:", pass_path)
+		// time.Sleep(time.Second * 2)
+
+		id3.recursiveBuildID3(node.decision[val], filtered_x, filtered_y, pass_path)
 	}
 }
 
 func (id3 *ID3) predict(input []string, dtree DTreeNode) string {
     node := &dtree
-    att_index := id3.indexOf(id3.columns, dtree.attribute)
 
-    for node.class == "" {
-        // fmt.Println(node.attribute, "node")
-		// fmt.Println(input[att_index], "val")
-        nextNode := node.decision[input[att_index]]
+    for {
+        // Jika node memiliki kelas, kembalikan kelasnya
+        if node.class != "" {
+            return node.class
+        }
+
+        // Pastikan atribut valid
+        att_index := id3.indexOf(id3.columns, node.attribute)
+        if att_index == -1 {
+            fmt.Println("Attribute not found:", node.attribute)
+            return "Unknown"
+        }
+
+        // Pastikan nilai input ada dalam keputusan node
+        nextNode, exists := node.decision[input[att_index]]
+        if !exists || nextNode == nil {
+            // fmt.Println("No decision found for input:", input[att_index])
+            return "Unknown"
+        }
+
         node = nextNode
-		att_index = id3.indexOf(id3.columns, node.attribute)
     }
-
-    return node.class
 }
+
 
 
 func (id3 *ID3) score() float64 {
 	dtree := &DTreeNode{}
-	id3.recursiveBuildID3(dtree, id3.dataTrainX, id3.dataTrainY)
+	fmt.Println("fitting..")
+	id3.recursiveBuildID3(dtree, id3.dataTrainX, id3.dataTrainY, []string{})
+	fmt.Println("Scoring..")
 	np := 0
 	for i := 0; i < len(id3.dataTestX); i++ {
 		predict := id3.predict(id3.dataTestX[i], *dtree)
 		if(predict == id3.dataTestY[i][0]) {
 			np++
 		}
+		// fmt.Println(i)
 	}
 	
 	return float64(float64(np) / float64(len(id3.dataTestX)))
