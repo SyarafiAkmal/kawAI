@@ -41,7 +41,6 @@ func (knn *KNearestNeighbor) distance(query []string, row []string) int {
 	return dist
 }
 
-
 func (knn *KNearestNeighbor) predict(k int, query []string) string {
 	distArray := make([][2]int, len(knn.dataTrainX))
 
