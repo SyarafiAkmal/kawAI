@@ -205,6 +205,7 @@ func (id3 *ID3) recursiveBuildID3(node *DTreeNode, dataX [][]string, dataY [][]s
 	node.dataY = dataY
 	att_index := id3.indexOf(id3.columns, attribute)
 	classes, _ := id3.uniqueValues(dataX, dataY, 0, false)
+	// fmt.Println(classes)
 	if att_index == -1 {
 		node.class = id3.mode(dataY) // plurality value of examples
 		// fmt.Println("result =>", node.class)
@@ -246,19 +247,16 @@ func (id3 *ID3) predict(input []string, dtree DTreeNode) string {
     node := &dtree
 
     for {
-        // Jika node memiliki kelas, kembalikan kelasnya
         if node.class != "" {
             return node.class
         }
 
-        // Pastikan atribut valid
         att_index := id3.indexOf(id3.columns, node.attribute)
         if att_index == -1 {
             fmt.Println("Attribute not found:", node.attribute)
             return "Unknown"
         }
 
-        // Pastikan nilai input ada dalam keputusan node
         nextNode, exists := node.decision[input[att_index]]
         if !exists || nextNode == nil {
             // fmt.Println("No decision found for input:", input[att_index], "(" + id3.mode(node.dataY) + ")")
@@ -273,6 +271,8 @@ func (id3 *ID3) predict(input []string, dtree DTreeNode) string {
 
 func (id3 *ID3) score() float64 {
 	dtree := &DTreeNode{}
+	// classes, _ := id3.uniqueValues(id3.dataTrainX, id3.dataTrainY, 0, false)
+	// fmt.Println(classes)
 	id3.recursiveBuildID3(dtree, id3.dataTrainX, id3.dataTrainY, [][]string{}, []string{})
 
 	var wg sync.WaitGroup
@@ -286,16 +286,15 @@ func (id3 *ID3) score() float64 {
 			defer wg.Done()
 			predict := id3.predict(id3.dataTestX[i], *dtree)
 			if predict == id3.dataTestY[i][0] {
-				mu.Lock()   // Lock access to np
-				np++        // Increment correct predictions
-				mu.Unlock() // Unlock access to np
+				mu.Lock()  
+				np++        
+				mu.Unlock()
 			}
 		}(i)
 	}
 
-	wg.Wait() // Wait for all goroutines to finish
+	wg.Wait()
 
-	// Calculate and return the accuracy
 	return float64(np) / float64(len(id3.dataTestX))
 }
 
@@ -313,7 +312,6 @@ func MainID3(data [][]string) {
 	// trainY := labels
 	// testY := labels
 	trainX, testX := splitDataset(features, 0.8)
-	// fmt.Println(len(trainX), len(testX))
 	trainY, testY := splitDataset(labels, 0.8)
 
 	ID3 := ID3{
