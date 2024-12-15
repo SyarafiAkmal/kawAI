@@ -113,7 +113,7 @@ def NBs(data: pd.DataFrame):
     # PREPROCESS END
     
     # Split the dataset into training and test sets
-    X_train, X_test, y_train, y_test = train_test_split(X, label, test_size=0.2, shuffle=False)
+    X_train, X_test, y_train, y_test = train_test_split(X, label, test_size=0.2, shuffle=True)
     
     # Create the Gaussian Naive Bayes classifier
     nb = GaussianNB()

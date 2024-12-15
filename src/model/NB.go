@@ -162,7 +162,7 @@ func MainNB(data [][]string) {
 		dataTrainY: trainY,
 		dataTestX:  testX,
 		dataTestY:  testY,
-	}
+	}	
 	score := nb.score()
 	fmt.Printf("Accuracy: %.2f\n", score)
 }

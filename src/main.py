@@ -45,7 +45,7 @@ def ID3_library(filename) :
     ID3s(data)
 
 # KNN_library(5, 'data')
-# NB_library('data')
+NB_library('final_data_set')
 # ID3_library('data')
 
-ID3('3', 'data')
+# ID3('3', 'data')

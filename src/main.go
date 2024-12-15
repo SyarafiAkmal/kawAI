@@ -19,7 +19,7 @@ func main() {
 	// }
 
 	// args[2]
-	file, err := os.Open("data/"+ "data" +".csv")
+	file, err := os.Open("data/"+ "data2" +".csv")
 	if err != nil {
 		log.Fatalf("Failed to open CSV file: %v", err)
 	}
@@ -44,6 +44,7 @@ func main() {
 	// 	model.MainID3(data)
 	// }
 
-	model.MainID3(data)
+	// model.MainID3(data)
+	model.MainNB(data[1:])
 	fmt.Printf("Execution Time: %v\n", time.Since(startTime))
 }
