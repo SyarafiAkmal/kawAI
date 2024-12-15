@@ -278,7 +278,7 @@ func (id3 *ID3) score() float64 {
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 
-	np := 0
+	tp := 0
 
 	for i := 0; i < len(id3.dataTestX); i++ {
 		wg.Add(1)
@@ -287,7 +287,7 @@ func (id3 *ID3) score() float64 {
 			predict := id3.predict(id3.dataTestX[i], *dtree)
 			if predict == id3.dataTestY[i][0] {
 				mu.Lock()  
-				np++        
+				tp++        
 				mu.Unlock()
 			}
 		}(i)
@@ -295,7 +295,7 @@ func (id3 *ID3) score() float64 {
 
 	wg.Wait()
 
-	return float64(np) / float64(len(id3.dataTestX))
+	return float64(tp) / float64(len(id3.dataTestX))
 }
 
 

@@ -7,19 +7,20 @@ import (
     "encoding/csv"
     "time"
     "kawAI/src/model"
+	"strconv"
 )
 
 func main() {
 
-	// args := os.Args
+	args := os.Args
 
-	// if len(args) < 2 {
-	// 	fmt.Println("No arguments provided.")
-	// 	return 
-	// }
+	if len(args) < 2 {
+		fmt.Println("No arguments provided.")
+		return 
+	}
 
 	// args[2]
-	file, err := os.Open("data/"+ "data2" +".csv")
+	file, err := os.Open("data/"+ args[1] +".csv")
 	if err != nil {
 		log.Fatalf("Failed to open CSV file: %v", err)
 	}
@@ -32,19 +33,26 @@ func main() {
 	}
 
 	startTime := time.Now()
-	// if (args[3] == "KNN") {
-	// 	model.MainKNN(data[1:])
-	// }
-	// if (args[3] == "NB") {
-	// 	model.MainNB(data[1:])
-	// }
+	if (args[2] == "KNN") {
+
+		intValue, err := strconv.Atoi(args[3])
+		if err != nil {
+			fmt.Println("Error converting string to int:", err)
+			return
+		}
+		// fmt.Println(args[3])
+		model.MainKNN(intValue, data[1:])
+	}
+	if (args[2] == "NB") {
+		model.MainNB(data[1:])
+	}
 	
-	// if (args[3] == "ID3") {
-	// 	// fmt.Println("ID3")
-	// 	model.MainID3(data)
-	// }
+	if (args[2] == "ID3") {
+		// fmt.Println("ID3")
+		model.MainID3(data)
+	}
 
 	// model.MainID3(data)
-	model.MainNB(data[1:])
+	// model.MainNB(data[1:])
 	fmt.Printf("Execution Time: %v\n", time.Since(startTime))
 }

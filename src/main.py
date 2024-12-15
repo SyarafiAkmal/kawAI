@@ -5,7 +5,7 @@ from model.model_library import *
 go_file = "main.go"
 
 def KNN(k, filename):
-    params = [k, filename, 'KNN'] 
+    params = [filename, 'KNN', str(k)] 
     result = subprocess.run(['go', 'run', go_file] + params, capture_output=True, text=True)
     print(result.stdout)
 
@@ -13,8 +13,8 @@ def KNN(k, filename):
         print("Go program error:")
         print(result.stderr)
 
-def NB(k, filename):
-    params = [k, filename, 'NB'] 
+def NB(filename):
+    params = [filename, 'NB'] 
     result = subprocess.run(['go', 'run', go_file] + params, capture_output=True, text=True)
     print(result.stdout)
 
@@ -22,8 +22,8 @@ def NB(k, filename):
         print("Go program error:")
         print(result.stderr)
 
-def ID3(k, filename):
-    params = [k, filename, 'ID3'] 
+def ID3(filename):
+    params = [filename, 'ID3'] 
     result = subprocess.run(['go', 'run', go_file] + params, capture_output=True, text=True)
     print(result.stdout)
 
@@ -31,9 +31,9 @@ def ID3(k, filename):
         print("Go program error:")
         print(result.stderr)
 
-def KNN_library(k, filename) :
+def KNN_library(filename) :
     data = pd.read_csv("data/" + filename + ".csv")
-    KNNs(k, data)
+    KNNs(data)
 
 def NB_library(filename) :
     data = pd.read_csv("data/" + filename + ".csv")
@@ -45,7 +45,9 @@ def ID3_library(filename) :
     ID3s(data)
 
 # KNN_library(5, 'data')
-NB_library('final_data_set')
-# ID3_library('data')
+# NB_library('final_data_set')
+# ID3_library('data')   
 
-# ID3('3', 'data')
+# NB('data2')
+
+

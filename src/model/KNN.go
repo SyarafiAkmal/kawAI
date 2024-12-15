@@ -103,7 +103,7 @@ func (knn *KNearestNeighbor) score(k int) float64 {
 	return float64(tp) / float64(len(knn.dataTestX))
 }
 
-func MainKNN(data [][]string) {
+func MainKNN(k int, data [][]string) {
 
 	var features [][]string
 	var labels [][]string
@@ -125,6 +125,6 @@ func MainKNN(data [][]string) {
 		dataTestX:  testX,
 		dataTestY:  testY,
 	}
-	score := kNN.score(3)
+	score := kNN.score(k)
 	fmt.Printf("Accuracy: %.2f\n", score)
 }
