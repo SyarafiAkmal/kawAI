@@ -1,7 +1,7 @@
 # Deskripsi Repository
 pranala : https://github.com/SyarafiAkmal/kawAI
 
-Pada tugas ini, Implementasi algoritma KNN, Naive_bayes, dan ID3 dilakukan dalam dua pendekatan, yaitu implementasi manual menggunakan bahasa pemrograman Go dan implementasi menggunakan library scikit-learn di Python.
+Pada tugas ini, Implementasi algoritma KNN, Naive_bayes, dan ID3 dilakukan dalam dua pendekatan, yaitu implementasi manual menggunakan bahasa pemrograman Go dan implementasi menggunakan library scikit-learn di Python. Tugas ini menggunakan algoritma-algoritam di atas untuk melakukan deteksi jenis serangan siber seperti DoS, 
 
 # Cara Setup dan Run Program
 - masuk ke directory src
